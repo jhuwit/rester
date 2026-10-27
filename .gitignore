@@ -1,0 +1,7 @@
+.Rproj.user
+inst/python/__pycache__/
+.Rhistory
+.RData
+.httr-oauth
+.DS_Store
+.quarto

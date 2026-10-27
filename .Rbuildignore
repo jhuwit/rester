@@ -1,0 +1,11 @@
+^rester\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^\.github$
+^README\.Rmd$
+^README_cache$
+^\.DS_Store$
+^cran-comments\.md$
+^codecov\.yml$
+^CRAN-SUBMISSION$
+^data-raw$
