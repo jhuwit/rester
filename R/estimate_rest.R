@@ -234,6 +234,10 @@ ar_device = function(device = NULL) {
 #' Epochs with no valid data have `NA` values.  Sleep stage classes are
 #' deep, light, rem, and wake; respiratory event classes are no_event and
 #' event.  The `actipy` information about the data is in `attr(x, "info")`.
+#' @references Lorenzen NR, Brink-Kjaer A, Jennum PJ, Mignot E (2026).
+#' AcceleRest: A Physiology-Aware Masked Autoencoder for Wrist
+#' Accelerometer-based Sleep Staging and Apnea Evaluation. *medRxiv*.
+#' \doi{10.64898/2026.01.28.26345056}
 #' @export
 #' @examples
 #' \donttest{

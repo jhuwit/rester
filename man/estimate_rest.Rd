@@ -71,3 +71,9 @@ are averaged across the overlapping windows covering it.
   }
 }
 }
+\references{
+Lorenzen NR, Brink-Kjaer A, Jennum PJ, Mignot E (2026).
+AcceleRest: A Physiology-Aware Masked Autoencoder for Wrist
+Accelerometer-based Sleep Staging and Apnea Evaluation. \emph{medRxiv}.
+\doi{10.64898/2026.01.28.26345056}
+}

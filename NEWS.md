@@ -1,7 +1,8 @@
 # rester 0.1.0
 
 * Initial version wrapping the AcceleRest model
-  (<https://github.com/NielsRLorenzen/AcceleRest>).
+  (<https://github.com/NielsRLorenzen/AcceleRest>), with a citation to
+  Lorenzen et al. (2026) <doi:10.64898/2026.01.28.26345056>.
 * Added `ar_download_repo()`/`ar_extract_repo()` and `ar_download_weights()`
   to download and extract the model code and pretrained weights, and
   `ar_setup()` to do both.

@@ -19,6 +19,10 @@ from wrist-worn accelerometry. It wraps the AcceleRest model from
   (`"linear_sleepstages"`) or an LSTM head (`"lstm_sleepstages"`), and
 - respiratory events (`"linear_respevents"`).
 
+The model is described in [Lorenzen et
+al. (2026)](https://www.medrxiv.org/content/10.64898/2026.01.28.26345056v1);
+please cite it when using `rester` (see `citation("rester")`).
+
 The Python requirements (`torch`, `actipy`, etc.) are declared with
 `reticulate::py_require()` when the package is loaded, so `reticulate`
 sets up the Python environment automatically.
@@ -96,6 +100,17 @@ the last available `torch` is 2.2.2, which `rester` supports. On macOS,
 `rester` sets `KMP_DUPLICATE_LIB_OK=TRUE` (if unset) so `torch` and
 OpenMP-using readers can run in the same R session. `py_estimate_rest()`
 runs `estimate_rest()` in a separate R process.
+
+## Citation
+
+``` r
+citation("rester")
+```
+
+> Lorenzen NR, Brink-Kjaer A, Jennum PJ, Mignot E (2026). AcceleRest: A
+> Physiology-Aware Masked Autoencoder for Wrist Accelerometer-based
+> Sleep Staging and Apnea Evaluation. *medRxiv*.
+> [doi:10.64898/2026.01.28.26345056](https://doi.org/10.64898/2026.01.28.26345056)
 
 ## Testing
 

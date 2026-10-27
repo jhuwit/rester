@@ -1,0 +1,19 @@
+bibentry(
+  bibtype = "Article",
+  title = paste(
+    "AcceleRest: A Physiology-Aware Masked Autoencoder for Wrist",
+    "Accelerometer-based Sleep Staging and Apnea Evaluation"
+  ),
+  author = c(
+    person("Niels R.", "Lorenzen"),
+    person("Andreas", "Brink-Kjaer"),
+    person("Poul J.", "Jennum"),
+    person("Emmanuel", "Mignot")
+  ),
+  journal = "medRxiv",
+  year = "2026",
+  doi = "10.64898/2026.01.28.26345056",
+  url = "https://www.medrxiv.org/content/10.64898/2026.01.28.26345056v1",
+  note = "Preprint",
+  header = "To cite the AcceleRest model used by rester, please use:"
+)

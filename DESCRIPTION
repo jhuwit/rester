@@ -7,7 +7,8 @@ Authors@R:
            role = c("aut", "cre"),
            email = "muschellij2@gmail.com",
            comment = c(ORCID = "0000-0001-6469-1750"))
-Description: Wraps the 'AcceleRest' foundation model
+Description: Wraps the 'AcceleRest' model from Lorenzen et al. (2026)
+    <doi:10.64898/2026.01.28.26345056>
     <https://github.com/NielsRLorenzen/AcceleRest> to estimate sleep
     stages and respiratory events from wrist-worn 'accelerometry' data.
     Provides functions to download the model code and pretrained
