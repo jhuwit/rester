@@ -186,7 +186,8 @@ ar_load_model = function(
   device = ar_device(device)
   files = ar_weights(weights_dir)
   files = files[match(model, files$model), , drop = FALSE]
-  weight_files = reticulate::dict(stats::setNames(as.list(files$file), model))
+  # a named list is converted to a Python dict
+  weight_files = stats::setNames(as.list(files$file), model)
   py$load_model(ar_repo_path(repo_dir), weight_files, device = device)
 }
 
@@ -360,6 +361,16 @@ ar_example_data = function(n_hours = NULL) {
 #'
 #' @returns Output from [rester::estimate_rest()].
 #' @export
+#' @examples
+#' \donttest{
+#'   # Runs only after ar_setup(), so Python is not set up otherwise
+#'   if (requireNamespace("callr", quietly = TRUE) &&
+#'       ar_have_repo() && ar_have_weights("linear_sleepstages")) {
+#'     data = ar_example_data(n_hours = 2.5)
+#'     out = py_estimate_rest(data, model = "linear_sleepstages",
+#'                            context_window_shift = 32L)
+#'   }
+#' }
 py_estimate_rest = function(
     ...,
     pyenv_function = function() {

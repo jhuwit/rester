@@ -38,6 +38,9 @@
 #'
 #' @returns The output of [reticulate::py_require()], invisibly.
 #' @export
+#' @examples
+#' # Only declares the requirements; nothing is installed until Python starts
+#' py_require_rester()
 py_require_rester = function(...) {
   reticulate::py_require(
     packages = .rester_packages,
@@ -84,6 +87,12 @@ ar_python_modules_installed = function() {
 rester_python = function() {
   if (is.null(.rester_env$py)) {
     py_require_rester()
+    # Do not write __pycache__ into the installed package directory
+    sys = reticulate::import("sys", convert = FALSE)
+    dont_write = reticulate::py_get_attr(sys, "dont_write_bytecode")
+    reticulate::py_set_attr(sys, "dont_write_bytecode", TRUE)
+    on.exit(reticulate::py_set_attr(sys, "dont_write_bytecode", dont_write),
+            add = TRUE)
     .rester_env$py = reticulate::import_from_path(
       "rester_predict",
       path = system.file("python", package = "rester"),

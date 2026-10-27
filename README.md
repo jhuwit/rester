@@ -110,7 +110,7 @@ citation("rester")
 > Lorenzen NR, Brink-Kjaer A, Jennum PJ, Mignot E (2026). AcceleRest: A
 > Physiology-Aware Masked Autoencoder for Wrist Accelerometer-based
 > Sleep Staging and Apnea Evaluation. *medRxiv*.
-> [doi:10.64898/2026.01.28.26345056](https://doi.org/10.64898/2026.01.28.26345056)
+> [doi:10.64898/2026.01.28.26345056](https://www.medrxiv.org/content/10.64898/2026.01.28.26345056v1)
 
 ## Testing
 

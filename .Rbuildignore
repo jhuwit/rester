@@ -9,3 +9,4 @@
 ^codecov\.yml$
 ^CRAN-SUBMISSION$
 ^data-raw$
+^inst/python/__pycache__$

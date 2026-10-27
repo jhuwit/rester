@@ -29,3 +29,14 @@ Output from \code{\link[=estimate_rest]{estimate_rest()}}.
 \description{
 Run \code{estimate_rest} with Python in a Separate Process
 }
+\examples{
+\donttest{
+  # Runs only after ar_setup(), so Python is not set up otherwise
+  if (requireNamespace("callr", quietly = TRUE) &&
+      ar_have_repo() && ar_have_weights("linear_sleepstages")) {
+    data = ar_example_data(n_hours = 2.5)
+    out = py_estimate_rest(data, model = "linear_sleepstages",
+                           context_window_shift = 32L)
+  }
+}
+}

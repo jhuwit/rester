@@ -201,7 +201,7 @@ test_that("ar_load_model loads the requested heads", {
   )
   expect_equal(out, "model")
   expect_equal(basename(passed$repo_dir), "AcceleRest")
-  files <- reticulate::py_to_r(passed$weight_files)
+  files <- passed$weight_files
   expect_named(files, c("lstm_sleepstages", "linear_sleepstages"))
   expect_equal(basename(unlist(files)),
                c("accelerest_sleepstage_lstmc_weights.pt",

@@ -17,3 +17,7 @@ Declares the Python packages needed to run AcceleRest using
 \code{\link[reticulate:py_require]{reticulate::py_require()}}.  This is called when \code{rester} is loaded, so
 calling it directly is only needed if you pass additional arguments.
 }
+\examples{
+# Only declares the requirements; nothing is installed until Python starts
+py_require_rester()
+}

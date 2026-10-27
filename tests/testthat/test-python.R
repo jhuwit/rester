@@ -57,10 +57,17 @@ test_that("rester_python imports the bundled module once", {
   on.exit(env$py <- old)
   env$py <- NULL
   imports <- 0
+  bytecode <- logical()
   with_mocked_bindings(
     with_mocked_bindings({
       first <- rester:::rester_python()
       second <- rester:::rester_python()
+    },
+    import = function(module, convert) "sys",
+    py_get_attr = function(x, name) FALSE,
+    py_set_attr = function(x, name, value) {
+      bytecode <<- c(bytecode, value)
+      x
     },
     import_from_path = function(module, path, convert) {
       imports <<- imports + 1
@@ -77,4 +84,6 @@ test_that("rester_python imports the bundled module once", {
   expect_equal(first, "module")
   expect_identical(first, second)
   expect_equal(imports, 1)
+  # bytecode writing is turned off for the import, then restored
+  expect_equal(bytecode, c(TRUE, FALSE))
 })
