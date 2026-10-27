@@ -34,7 +34,9 @@
 #' @export
 #' @examples
 #' \donttest{
-#'   if (ar_python_modules_installed()) {
+#'   # Runs only after ar_setup(), so Python is not set up otherwise
+#'   if (ar_have_repo() && ar_have_weights() &&
+#'       ar_python_modules_installed()) {
 #'     data = ar_example_data(n_hours = 0.1)
 #'     out = ar_read(data)
 #'     out$start_time
@@ -167,10 +169,10 @@ ar_time_zone = function(time) {
 #' @export
 #' @examples
 #' \donttest{
-#'   cache_dir = file.path(tempdir(), "rester")
-#'   if (ar_python_modules_installed() && ar_have_repo(cache_dir) &&
-#'       ar_have_weights("linear_sleepstages", cache_dir)) {
-#'     model = ar_load_model("linear_sleepstages", cache_dir, cache_dir)
+#'   # Runs only after ar_setup(), so Python is not set up otherwise
+#'   if (ar_have_repo() && ar_have_weights("linear_sleepstages") &&
+#'       ar_python_modules_installed()) {
+#'     model = ar_load_model("linear_sleepstages")
 #'   }
 #' }
 ar_load_model = function(
@@ -235,16 +237,13 @@ ar_device = function(device = NULL) {
 #' @export
 #' @examples
 #' \donttest{
-#'   cache_dir = file.path(tempdir(), "rester")
-#'   if (ar_python_modules_installed()) {
-#'     setup = try(ar_setup("linear_sleepstages", cache_dir = cache_dir))
-#'     if (!inherits(setup, "try-error")) {
-#'       data = ar_example_data(n_hours = 2.5)
-#'       out = estimate_rest(data, model = "linear_sleepstages",
-#'                           cache_dir = cache_dir, context_window_shift = 32L,
-#'                           sample_rate = 30)
-#'       head(out$linear_sleepstages)
-#'     }
+#'   # Runs only after ar_setup(), so Python is not set up otherwise
+#'   if (ar_have_repo() && ar_have_weights("linear_sleepstages") &&
+#'       ar_python_modules_installed()) {
+#'     data = ar_example_data(n_hours = 2.5)
+#'     out = estimate_rest(data, model = "linear_sleepstages",
+#'                         context_window_shift = 32L)
+#'     head(out$linear_sleepstages)
 #'   }
 #' }
 estimate_rest = function(
@@ -321,9 +320,9 @@ ar_format_predictions = function(probs, labels, start_time = NULL) {
 
 #' Example Accelerometry Data
 #'
-#' Reads the example 30Hz wrist accelerometry data included in the package,
-#' reconstructing the time stamps (stored rounded to the second) from the
-#' sample rate.
+#' Reads the example 12 hours of 30Hz wrist accelerometry data included in the
+#' package (the same recording as in the `sleeper` package), reconstructing
+#' the time stamps (stored rounded to the second) from the sample rate.
 #'
 #' @param n_hours number of hours of data to read (up to 12).  `NULL`
 #' reads all of it.

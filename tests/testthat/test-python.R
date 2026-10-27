@@ -50,3 +50,31 @@ test_that("module check uses find_spec on module names", {
     .package = "reticulate"
   ))
 })
+
+test_that("rester_python imports the bundled module once", {
+  env <- rester:::.rester_env
+  old <- env$py
+  on.exit(env$py <- old)
+  env$py <- NULL
+  imports <- 0
+  with_mocked_bindings(
+    with_mocked_bindings({
+      first <- rester:::rester_python()
+      second <- rester:::rester_python()
+    },
+    import_from_path = function(module, path, convert) {
+      imports <<- imports + 1
+      expect_equal(module, "rester_predict")
+      expect_true(file.exists(file.path(path, "rester_predict.py")))
+      expect_false(convert)
+      "module"
+    },
+    .package = "reticulate"
+    ),
+    py_require_rester = function(...) TRUE,
+    .package = "rester"
+  )
+  expect_equal(first, "module")
+  expect_identical(first, second)
+  expect_equal(imports, 1)
+})

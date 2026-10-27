@@ -15,6 +15,10 @@ Check for the Python Modules Used by \code{rester}
 }
 \examples{
 \donttest{
-  ar_python_modules_installed()
+  # Checking starts Python, which installs the Python packages, so this
+  # runs only after ar_setup()
+  if (ar_have_repo() && ar_have_weights()) {
+    ar_python_modules_installed()
+  }
 }
 }

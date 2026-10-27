@@ -30,8 +30,8 @@ A list with the repository path and the weights \code{data.frame}.
 Runs \code{\link[=ar_download_repo]{ar_download_repo()}} and \code{\link[=ar_download_weights]{ar_download_weights()}}.
 }
 \examples{
-\donttest{
-  out = try(ar_setup("linear_sleepstages",
-                     cache_dir = file.path(tempdir(), "rester")))
+\dontrun{
+  # downloads the AcceleRest code and ~100MB of weights to ar_cache_dir()
+  ar_setup()
 }
 }

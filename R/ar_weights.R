@@ -124,9 +124,10 @@ ar_have_weights = function(
 #' @param ... additional arguments to pass to [curl::curl_download()]
 #' @export
 #' @examples
-#' \donttest{
-#'   weights_dir = file.path(tempdir(), "rester-weights")
-#'   files = try(ar_download_weights("linear_sleepstages", weights_dir))
+#' ar_have_weights()
+#' \dontrun{
+#'   # downloads ~35MB per model to ar_cache_dir()
+#'   files = ar_download_weights("linear_sleepstages")
 #' }
 ar_download_weights = function(
     model = NULL,
@@ -177,10 +178,10 @@ ar_download_weights = function(
 #' @export
 #' @examples
 #' \donttest{
-#'   weights_dir = file.path(tempdir(), "rester-weights")
-#'   if (ar_python_modules_installed() &&
-#'       ar_have_weights("linear_sleepstages", weights_dir)) {
-#'     sd = ar_load_weights("linear_sleepstages", weights_dir)
+#'   # Runs only after ar_setup(), so Python is not set up otherwise
+#'   if (ar_have_weights("linear_sleepstages") &&
+#'       ar_python_modules_installed()) {
+#'     sd = ar_load_weights("linear_sleepstages")
 #'     names(sd)[1:5]
 #'   }
 #' }

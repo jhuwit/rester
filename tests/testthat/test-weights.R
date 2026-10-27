@@ -72,3 +72,66 @@ test_that("download failures give an informative error", {
     "Unable to download AcceleRest weights.*offline"
   )
 })
+
+test_that("ar_cache_dir uses the option, then the environment variable", {
+  old_opt <- options(rester.cache_dir = NULL)
+  old_env <- Sys.getenv("RESTER_CACHE_DIR", unset = NA)
+  on.exit({
+    options(old_opt)
+    if (is.na(old_env)) Sys.unsetenv("RESTER_CACHE_DIR") else
+      Sys.setenv(RESTER_CACHE_DIR = old_env)
+  })
+  Sys.unsetenv("RESTER_CACHE_DIR")
+  expect_equal(ar_cache_dir(), tools::R_user_dir("rester", which = "cache"))
+  Sys.setenv(RESTER_CACHE_DIR = "~/env-cache")
+  expect_equal(ar_cache_dir(), path.expand("~/env-cache"))
+  options(rester.cache_dir = "~/opt-cache")
+  expect_equal(ar_cache_dir(), path.expand("~/opt-cache"))
+})
+
+test_that("NULL models default to the prediction heads", {
+  expect_equal(rester:::ar_match_models(NULL),
+               c("linear_sleepstages", "lstm_sleepstages", "linear_respevents"))
+})
+
+test_that("incomplete downloads are an error", {
+  dir <- tempfile("rester-weights-")
+  expect_error(
+    with_mocked_bindings(
+      ar_download_weights("linear_sleepstages", dir),
+      curl_download = function(url, destfile, ...) writeBin(raw(1), destfile),
+      .package = "curl"
+    ),
+    "incomplete"
+  )
+})
+
+test_that("ar_load_weights extracts the state dictionary", {
+  dir <- tempfile("rester-weights-")
+  expect_error(ar_load_weights("linear_sleepstages", dir), "not found")
+  dir.create(dir)
+  file <- ar_weights(dir)$file[1]
+  writeBin(raw(1), file)
+  tensor <- function(value) {
+    list(detach = function() list(cpu = function() list(
+      numpy = function() value)))
+  }
+  fake_python <- list(load_state_dict = function(path) {
+    expect_equal(path, file)
+    list(a.weight = tensor(matrix(1:4, 2)), a.bias = tensor(1:2))
+  })
+  out <- with_mocked_bindings(
+    ar_load_weights("linear_sleepstages", dir),
+    rester_python = function() fake_python,
+    .package = "rester"
+  )
+  expect_equal(out, list(a.weight = matrix(1:4, 2), a.bias = 1:2))
+
+  raw_out <- with_mocked_bindings(
+    ar_load_weights("linear_sleepstages", dir, as_r = FALSE),
+    rester_python = function() fake_python,
+    .package = "rester"
+  )
+  expect_named(raw_out, c("a.weight", "a.bias"))
+  expect_error(ar_load_weights(c("linear_sleepstages", "lstm_sleepstages"), dir))
+})

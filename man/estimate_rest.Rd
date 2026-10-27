@@ -61,16 +61,13 @@ are averaged across the overlapping windows covering it.
 }
 \examples{
 \donttest{
-  cache_dir = file.path(tempdir(), "rester")
-  if (ar_python_modules_installed()) {
-    setup = try(ar_setup("linear_sleepstages", cache_dir = cache_dir))
-    if (!inherits(setup, "try-error")) {
-      data = ar_example_data(n_hours = 2.5)
-      out = estimate_rest(data, model = "linear_sleepstages",
-                          cache_dir = cache_dir, context_window_shift = 32L,
-                          sample_rate = 30)
-      head(out$linear_sleepstages)
-    }
+  # Runs only after ar_setup(), so Python is not set up otherwise
+  if (ar_have_repo() && ar_have_weights("linear_sleepstages") &&
+      ar_python_modules_installed()) {
+    data = ar_example_data(n_hours = 2.5)
+    out = estimate_rest(data, model = "linear_sleepstages",
+                        context_window_shift = 32L)
+    head(out$linear_sleepstages)
   }
 }
 }

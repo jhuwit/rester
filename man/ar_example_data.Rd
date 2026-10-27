@@ -15,9 +15,9 @@ A \code{tibble} with columns \code{time}, \code{X}, \code{Y}, and \code{Z}, with
 \code{sample_rate} attribute set to 30.
 }
 \description{
-Reads the example 30Hz wrist accelerometry data included in the package,
-reconstructing the time stamps (stored rounded to the second) from the
-sample rate.
+Reads the example 12 hours of 30Hz wrist accelerometry data included in the
+package (the same recording as in the \code{sleeper} package), reconstructing
+the time stamps (stored rounded to the second) from the sample rate.
 }
 \examples{
 data = ar_example_data(n_hours = 0.01)

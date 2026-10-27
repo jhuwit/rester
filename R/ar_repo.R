@@ -17,10 +17,11 @@
 #' a logical.
 #' @export
 #' @examples
-#' \donttest{
-#'   repo_dir = file.path(tempdir(), "rester-repo")
-#'   path = try(ar_download_repo(repo_dir))
+#' \dontrun{
+#'   # downloads the AcceleRest code to ar_cache_dir()
+#'   path = ar_download_repo()
 #' }
+#' ar_have_repo()
 ar_download_repo = function(
     repo_dir = ar_cache_dir(),
     ref = .ar_default_ref,
@@ -72,8 +73,8 @@ ar_extract_repo = function(zip_file, repo_dir = ar_cache_dir()) {
 
   unlink(path, recursive = TRUE)
   dir.create(path, recursive = TRUE, showWarnings = FALSE)
-  file.copy(file.path(top, c("hubconf.py", "accelerest")), path,
-            recursive = TRUE)
+  src = file.path(top, c("hubconf.py", "accelerest"))
+  file.copy(src[file.exists(src)], path, recursive = TRUE)
   if (!ar_have_repo(repo_dir)) {
     stop("Extraction of the AcceleRest code into ", path, " failed",
          call. = FALSE)
@@ -107,9 +108,9 @@ ar_repo_path = function(repo_dir) {
 #' @returns A list with the repository path and the weights `data.frame`.
 #' @export
 #' @examples
-#' \donttest{
-#'   out = try(ar_setup("linear_sleepstages",
-#'                      cache_dir = file.path(tempdir(), "rester")))
+#' \dontrun{
+#'   # downloads the AcceleRest code and ~100MB of weights to ar_cache_dir()
+#'   ar_setup()
 #' }
 ar_setup = function(
     model = NULL,

@@ -52,7 +52,11 @@ py_require_rester = function(...) {
 #' @export
 #' @examples
 #' \donttest{
-#'   ar_python_modules_installed()
+#'   # Checking starts Python, which installs the Python packages, so this
+#'   # runs only after ar_setup()
+#'   if (ar_have_repo() && ar_have_weights()) {
+#'     ar_python_modules_installed()
+#'   }
 #' }
 ar_python_modules_installed = function() {
   .python_modules_available(.rester_modules)

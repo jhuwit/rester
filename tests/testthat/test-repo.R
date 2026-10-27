@@ -61,3 +61,41 @@ test_that("ar_download_repo uses the pinned archive and reuses existing code", {
   )
   expect_true(ar_have_repo(repo_dir))
 })
+
+test_that("repository download failures give an informative error", {
+  expect_error(
+    with_mocked_bindings(
+      ar_download_repo(tempfile("rester-repo-")),
+      curl_download = function(...) stop("offline"),
+      .package = "curl"
+    ),
+    "Unable to download the AcceleRest code.*offline"
+  )
+})
+
+test_that("ar_extract_repo errors if the extracted code is incomplete", {
+  skip_if(!nzchar(Sys.which("zip")), "zip not available")
+  src <- tempfile()
+  dir.create(file.path(src, "top"), recursive = TRUE)
+  writeLines("# hub", file.path(src, "top", "hubconf.py"))
+  zip_file <- tempfile(fileext = ".zip")
+  old <- setwd(src)
+  on.exit(setwd(old))
+  utils::zip(zip_file, files = "top", flags = "-qr")
+  expect_error(ar_extract_repo(zip_file, tempfile()), "failed")
+})
+
+test_that("ar_setup downloads the code and weights into one directory", {
+  dir <- tempfile("rester-")
+  out <- with_mocked_bindings(
+    ar_setup("linear_sleepstages", cache_dir = dir, quiet = TRUE),
+    ar_download_repo = function(repo_dir, ...) repo_dir,
+    ar_download_weights = function(model, weights_dir, ...) {
+      list(model = model, weights_dir = weights_dir)
+    },
+    .package = "rester"
+  )
+  expect_equal(out$repo_dir, dir)
+  expect_equal(out$weights, list(model = "linear_sleepstages",
+                                 weights_dir = dir))
+})

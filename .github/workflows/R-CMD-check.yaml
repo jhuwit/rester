@@ -22,7 +22,9 @@ jobs:
           - {os: macos-latest,   r: 'release'}
           - {os: windows-latest, r: 'release'}
           - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
+          # full-test downloads the AcceleRest code, weights, and torch to run
+          # the real model (tests/testthat/test-full.R)
+          - {os: ubuntu-latest,   r: 'release', full-test: true}
           - {os: ubuntu-latest,   r: 'oldrel-1'}
 
     env:
@@ -30,6 +32,7 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
       NOT_CRAN: true
       RETICULATE_PYTHON: managed
+      RESTER_FULL_TEST: ${{ matrix.config.full-test && 'true' || 'false' }}
 
     steps:
       - uses: actions/checkout@v6
@@ -45,6 +48,25 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
+
+      - name: Set up the full test
+        if: matrix.config.full-test
+        run: |
+          echo "RESTER_TEST_CACHE_DIR=$RUNNER_TEMP/rester-cache" >> "$GITHUB_ENV"
+          # so the examples, which need ar_setup() output, also run here
+          echo "RESTER_CACHE_DIR=$RUNNER_TEMP/rester-cache" >> "$GITHUB_ENV"
+          # CPU-only torch avoids downloading ~3GB of CUDA libraries
+          echo "UV_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cpu" >> "$GITHUB_ENV"
+        shell: bash
+
+      - name: Cache AcceleRest code, weights, and Python packages
+        if: matrix.config.full-test
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.temp }}/rester-cache
+            ~/.cache/uv
+          key: rester-full-${{ runner.os }}-${{ hashFiles('R/ar_weights.R', 'R/ar_repo.R', 'R/py_require_rester.R') }}
 
       - uses: r-lib/actions/check-r-package@v2
         with:

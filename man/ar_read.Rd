@@ -57,7 +57,9 @@ tool.  \code{.h5} files must already be preprocessed, with an
 }
 \examples{
 \donttest{
-  if (ar_python_modules_installed()) {
+  # Runs only after ar_setup(), so Python is not set up otherwise
+  if (ar_have_repo() && ar_have_weights() &&
+      ar_python_modules_installed()) {
     data = ar_example_data(n_hours = 0.1)
     out = ar_read(data)
     out$start_time

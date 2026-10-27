@@ -45,8 +45,9 @@ extracts the files needed to build the models (\code{hubconf.py} and the
 as the AcceleRest repository does not declare a license.
 }
 \examples{
-\donttest{
-  repo_dir = file.path(tempdir(), "rester-repo")
-  path = try(ar_download_repo(repo_dir))
+\dontrun{
+  # downloads the AcceleRest code to ar_cache_dir()
+  path = ar_download_repo()
 }
+ar_have_repo()
 }

@@ -123,23 +123,182 @@ test_that("ar_load_model requires downloaded code and weights", {
   expect_error(ar_load_model("autoencoder", dir, dir), "Unknown AcceleRest")
 })
 
-test_that("estimate_rest runs end to end when Python and weights are present", {
-  skip_on_cran()
-  cache_dir <- Sys.getenv("RESTER_TEST_CACHE_DIR")
-  if (!nzchar(cache_dir)) {
-    skip("Set RESTER_TEST_CACHE_DIR to a directory with ar_setup() output")
-  }
-  skip_if_not(ar_python_modules_installed(), "Python modules not available")
-  skip_if_not(ar_have_repo(cache_dir) &&
-                ar_have_weights("linear_sleepstages", cache_dir))
+test_that("ar_read reads CSV files with readr", {
+  file <- tempfile(fileext = ".csv.gz")
+  # write_csv() drops fractional seconds, so use 1Hz data
+  time <- as.POSIXct("2020-01-01 10:00:00", tz = "UTC") + 0:9
+  readr::write_csv(data.frame(time = time, X = 1, Y = 0, Z = 0), file)
+  passed <- NULL
+  with_mocked_bindings(
+    ar_read(file),
+    rester_python = function() list(
+      prepare_dataframe = function(data, sample_rate, ...) {
+        passed <<- list(data = data, sample_rate = sample_rate)
+      }
+    ),
+    ar_prepared = function(out, tz) out,
+    .package = "rester"
+  ) |> suppressMessages()
+  expect_equal(nrow(passed$data), 10)
+  expect_equal(passed$sample_rate, 1)
+})
 
-  data <- ar_example_data(n_hours = 2.5)
-  out <- estimate_rest(data, model = "linear_sleepstages",
-                       cache_dir = cache_dir, context_window_shift = 32L,
-                       device = "cpu")
-  pred <- out$linear_sleepstages
-  expect_true(nrow(pred) >= 256)
-  probs <- as.matrix(pred[, grepl("^prob_", names(pred))])
-  expect_equal(unname(rowSums(probs)), rep(1, nrow(probs)), tolerance = 1e-5)
-  expect_equal(pred$time[1], data$time[1], tolerance = 1)
+test_that("ar_prepared splits the Python output", {
+  out <- with_mocked_bindings(
+    rester:::ar_prepared(list("array", "2020-01-01 10:00:00", list(a = 1)),
+                         tz = "UTC"),
+    py_get_item = function(x, i) x[[i + 1L]],
+    py_to_r = function(x) x,
+    .package = "reticulate"
+  )
+  expect_equal(out$accelerometry, "array")
+  expect_equal(attr(out$start_time, "tzone"), "UTC")
+  expect_equal(out$info, list(a = 1))
+})
+
+test_that("ar_device uses the requested or default device", {
+  expect_equal(rester:::ar_device("cpu"), "cpu")
+  expect_equal(
+    with_mocked_bindings(
+      rester:::ar_device(),
+      rester_python = function() list(default_device = function() "cuda"),
+      .package = "rester"
+    ),
+    "cuda"
+  )
+  expect_error(rester:::ar_device(1))
+})
+
+test_that("ar_check_assets reports missing code and weights", {
+  dir <- tempfile("rester-")
+  expect_error(rester:::ar_check_assets("linear_sleepstages", dir, dir),
+               "code not found")
+  expect_error(
+    with_mocked_bindings(
+      rester:::ar_check_assets("linear_sleepstages", dir, dir),
+      ar_have_repo = function(...) TRUE,
+      .package = "rester"
+    ),
+    "weights not found"
+  )
+})
+
+test_that("ar_load_model loads the requested heads", {
+  dir <- tempfile("rester-")
+  passed <- NULL
+  out <- with_mocked_bindings(
+    ar_load_model(c("lstm_sleepstages", "linear_sleepstages"), dir, dir,
+                  device = "cpu"),
+    ar_check_assets = function(...) invisible(NULL),
+    rester_python = function() list(
+      load_model = function(repo_dir, weight_files, device) {
+        passed <<- list(repo_dir = repo_dir, weight_files = weight_files,
+                        device = device)
+        "model"
+      }
+    ),
+    .package = "rester"
+  )
+  expect_equal(out, "model")
+  expect_equal(basename(passed$repo_dir), "AcceleRest")
+  files <- reticulate::py_to_r(passed$weight_files)
+  expect_named(files, c("lstm_sleepstages", "linear_sleepstages"))
+  expect_equal(basename(unlist(files)),
+               c("accelerest_sleepstage_lstmc_weights.pt",
+                 "accelerest_sleepstage_linear_weights.pt"))
+  expect_equal(passed$device, "cpu")
+})
+
+test_that("estimate_rest formats predictions for each head", {
+  skip_if_not_installed("reticulate")
+  prepared <- list(
+    accelerometry = "array",
+    start_time = structure("2020-01-01 22:00:00", tzone = "UTC"),
+    info = list(SampleRate = 30)
+  )
+  probs <- list(
+    linear_sleepstages = rbind(c(0.7, 0.1, 0.1, 0.1), c(0.1, 0.1, 0.1, 0.7)),
+    linear_respevents = rbind(c(0.9, 0.1), c(0.2, 0.8))
+  )
+  passed <- NULL
+  out <- with_mocked_bindings(
+    estimate_rest(prepared, model = c("linear_sleepstages", "linear_respevents"),
+                  context_window_shift = 8L, max_batch_size = 4L,
+                  device = "cpu"),
+    ar_check_assets = function(...) invisible(NULL),
+    ar_read = function(...) stop("should not re-read prepared data"),
+    ar_load_model = function(model, ...) model,
+    rester_python = function() list(
+      predict = function(net, accelerometry, context_window_shift,
+                         max_batch_size, device) {
+        passed <<- list(net = net, accelerometry = accelerometry,
+                        shift = context_window_shift,
+                        batch = max_batch_size, device = device)
+        probs
+      }
+    ),
+    .package = "rester"
+  )
+  expect_equal(passed$net, c("linear_sleepstages", "linear_respevents"))
+  expect_equal(passed$shift, 8L)
+  expect_equal(passed$batch, 4L)
+  expect_named(out, c("linear_sleepstages", "linear_respevents"))
+  expect_equal(as.character(out$linear_sleepstages$prediction),
+               c("deep", "wake"))
+  expect_equal(as.character(out$linear_respevents$prediction),
+               c("no_event", "event"))
+  expect_equal(format(out$linear_sleepstages$time, tz = "UTC"),
+               c("2020-01-01 22:00:00", "2020-01-01 22:00:30"))
+  expect_equal(attr(out, "info"), list(SampleRate = 30))
+})
+
+test_that("estimate_rest reads data and validates arguments", {
+  expect_error(estimate_rest(data.frame(), context_window_shift = 0L))
+  read <- FALSE
+  with_mocked_bindings(
+    estimate_rest("file.bin", model = "linear_respevents", device = "cpu"),
+    ar_check_assets = function(...) invisible(NULL),
+    ar_read = function(file, ...) {
+      read <<- TRUE
+      list(accelerometry = "array", start_time = NULL, info = NULL)
+    },
+    ar_load_model = function(model, ...) model,
+    rester_python = function() list(
+      predict = function(...) list(linear_respevents = rbind(c(0.9, 0.1)))
+    ),
+    .package = "rester"
+  ) -> out
+  expect_true(read)
+  expect_true(is.na(out$linear_respevents$time))
+})
+
+test_that("py_estimate_rest runs estimate_rest via callr", {
+  skip_if_not_installed("callr")
+  fake_r <- function(func, args, show) do.call(func, args)
+  calls <- character()
+  out <- with_mocked_bindings(
+    with_mocked_bindings(
+      py_estimate_rest(file = "x"),
+      r = fake_r,
+      .package = "callr"
+    ),
+    py_require_rester = function(...) calls <<- c(calls, "py_require"),
+    estimate_rest = function(...) list(...),
+    .package = "rester"
+  )
+  expect_equal(out, list(file = "x"))
+  expect_equal(calls, "py_require")
+
+  # pyenv_function can modify the arguments
+  out <- with_mocked_bindings(
+    with_mocked_bindings(
+      py_estimate_rest(file = "x",
+                       pyenv_function = function(args) c(args, device = "cpu")),
+      r = fake_r,
+      .package = "callr"
+    ),
+    estimate_rest = function(...) list(...),
+    .package = "rester"
+  )
+  expect_equal(out, list(file = "x", device = "cpu"))
 })

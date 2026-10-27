@@ -53,8 +53,9 @@ the pretrained (not fine-tuned) backbones.
 }
 \examples{
 ar_weights()
-\donttest{
-  weights_dir = file.path(tempdir(), "rester-weights")
-  files = try(ar_download_weights("linear_sleepstages", weights_dir))
+ar_have_weights()
+\dontrun{
+  # downloads ~35MB per model to ar_cache_dir()
+  files = ar_download_weights("linear_sleepstages")
 }
 }

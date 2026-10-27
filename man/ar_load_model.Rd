@@ -34,10 +34,10 @@ Builds the multi-head AcceleRest model from downloaded code and weights
 }
 \examples{
 \donttest{
-  cache_dir = file.path(tempdir(), "rester")
-  if (ar_python_modules_installed() && ar_have_repo(cache_dir) &&
-      ar_have_weights("linear_sleepstages", cache_dir)) {
-    model = ar_load_model("linear_sleepstages", cache_dir, cache_dir)
+  # Runs only after ar_setup(), so Python is not set up otherwise
+  if (ar_have_repo() && ar_have_weights("linear_sleepstages") &&
+      ar_python_modules_installed()) {
+    model = ar_load_model("linear_sleepstages")
   }
 }
 }
